@@ -1,10 +1,10 @@
-# Naivecoin - una implementación de una criptomoneda ne menos de 1500 líneas de código 
+# Naivecoin - una implementación de una criptomoneda en menos de 1500 líneas de código 
 
 ### Motivación  
 Las criptomonedas y los contratos inteligentes que funcionan sobre las cadenas de bloques no son los conceptos más intuitivos. Conceptos como carteras (wallets), direcciones (addresses), prueba de trabajo (prove-of-work), transacciones (transactions) y sus firmas (signatures) son conceptos que deben entenderse en su contexto. Este proyecto está inspirado por el repositorio llamado [naivechain](https://github.com/lhartikk/naivechain). Este proyecto es un intento de implementar de la forma más sencilla una criptomoneda.   
 
 ### ¿Qué es una criptomoneda? 
-[De Wikipedia](https://en.wikipedia.org/wiki/Cryptocurrency) : una criptomoneda es un valor digital diseñado para ser utilizado como medio de intercambio. La criptografía se utiliza para proporcionar seguridad a las transacciones y para controlar la creación de unidades de la moneda. 
+[De Wikipedia](https://es.wikipedia.org/wiki/Criptomoneda) : una criptomoneda es un valor digital diseñado para ser utilizado como medio de intercambio. La criptografía se utiliza para proporcionar seguridad a las transacciones y para controlar la creación de unidades de la moneda. 
 
 ### Conceptos clave de Naivecoin 
 * Componentes: 
