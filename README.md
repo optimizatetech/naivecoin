@@ -1,55 +1,55 @@
-# Naivecoin - a cryptocurrency implementation in less than 1500 lines of code
+# Naivecoin - una implementación de una criptomoneda ne menos de 1500 líneas de código 
 
-### Motivation
-Cryptocurrencies and smart-contracts on top of a blockchain aren't the most trivial concepts to understand, things like wallets, addresses, block proof-of-work, transactions and their signatures, make more sense when they are in a broad context. Inspired by [naivechain](https://github.com/lhartikk/naivechain), this project is an attempt to provide as concise and simple an implementation of a cryptocurrency as possible.
+### Motivación  
+Las criptomonedas y los contratos inteligentes que funcionan sobre las cadenas de bloques no son los conceptos más intuitivos. Conceptos como carteras (wallets), direcciones (addresses), prueba de trabajo (prove-of-work), transacciones (transactions) y sus firmas (signatures) son conceptos que deben entenderse en su contexto. Este proyecto está inspirado por el repositorio llamado [naivechain](https://github.com/lhartikk/naivechain). Este proyecto es un intento de implementar de la forma más sencilla una criptomoneda.   
 
-### What is cryptocurrency
-[From Wikipedia](https://en.wikipedia.org/wiki/Cryptocurrency) : A cryptocurrency (or crypto currency) is a digital asset designed to work as a medium of exchange using cryptography to secure the transactions and to control the creation of additional units of the currency.
+### ¿Qué es una criptomoneda? 
+[De Wikipedia](https://en.wikipedia.org/wiki/Cryptocurrency) : una criptomoneda es un valor digital diseñado para ser utilizado como medio de intercambio. La criptografía se utiliza para proporcionar seguridad a las transacciones y para controlar la creación de unidades de la moneda. 
 
-### Key concepts of Naivecoin
-* Components
-    * HTTP Server
-    * Node
-    * Blockchain
-    * Operator
-    * Miner
-* HTTP API interface to control everything
-* Synchronization of blockchain and transactions
-* Simple proof-of-work (The difficulty increases every 5 blocks)
-* Addresses creation using a deterministic approach [EdDSA](https://en.wikipedia.org/wiki/EdDSA)
-* Data is persisted to a folder
+### Conceptos clave de Naivecoin 
+* Componentes: 
+    * Servidor HTTP
+    * Nodo
+    * Blockchain (cadena de bloques)
+    * Operador
+    * Minero
+* Interfaz para controlar todo por una API HTTP
+* Sincronización de la cadena de bloques y transacciones
+* Prueba de trabajo sencilla (La dificultad incrementa cada 5 bloques)
+* Creación de direcciones usando un enfoque determinista [EdDSA](https://en.wikipedia.org/wiki/EdDSA)
+* Persistencia de datos en un directorio
 
-> Naivechain uses websocket for p2p communication, but it was dropped to simplify the understanding of message exchange. It is relying only on REST communication.
+> Naivechain utiliza comunicación con websocket en p2p, pero se desistió su implementación para simplificar el ejemplo de este caso, para entender mejor la transacción de mensajes. Entonces, en este repositorio se utilizará comunicación REST únicamente.
 
-#### Components communication
+#### Comunicación de los componentes
 ```
                +---------------+
                |               |
-     +------+--+  HTTP Server  +---------+
+     +------+--+ Servidor HTTP +---------+
      |      |  |               |         |
      |      |  +-------+-------+         |
      |      |          |                 |
 +----v----+ |  +-------v------+    +-----v------+
 |         | |  |              |    |            |
-|  Miner  +---->  Blockchain  <----+  Operator  |
+| Minero  +---->  Blockchain  <----+  Operador  |
 |         | |  |              |    |            |
 +---------+ |  +-------^------+    +------------+
             |          |
             |     +----+---+
             |     |        |
-            +----->  Node  |
+            +----->  Nodo  |
                   |        |
                   +--------+
 ```
 
-Not all components in this implementation follow the complete list of requirements for a secure and scalable cryptocurrency. Inside the source-code, you can find comments with `INFO:` that describes what parts could be improved (and how) and what techniques were used to solve that specific challenge.
+No todos los componentes de este ejemplo siguen una implementación que se pueda considerar como segura y escalable. En el código fuente se han colocado comentarios con INFO en donde se informa de cómo se debería de hacer para solucionar los problemas correspondientes.
 
-#### HTTP Server
-Provides an API to manage the blockchain, wallets, addresses, transaction creation, mining request and peer connectivity.
+#### Servidor HTTP 
+Propociona una API para gestionar la cadena de bloques, carteras, direcciones, creación de transacciones, solicitud de minados y conectividad entre nodos.  
 
-It's the starting point to interact with the naivecoin, and every node provides a swagger API to make this interaction easier. Available endpoints:
+Es el punto de entrada para interactuar con la moneda y cada nodo proporciona una API (swagger) para facilitar la interacción). Los puntos disponibles serían:  
 
-##### Blockchain
+##### Cadena de bloques (Blockchain)
 
 |Method|URL|Description|
 |------|---|-----------|
@@ -89,44 +89,45 @@ It's the starting point to interact with the naivecoin, and every node provides 
 |------|---|-----------|
 |POST|/miner/mine|Mine a new block|
 
-#### Blockchain
+#### Cadena de bloques - Blockchain
 
-The blockchain holds two pieces of information, the block list (a linked list), and the transaction list (a hash map). 
+La cadena de bloques guarda los trozos de información, una lista de bloques y una lista de transacciones (un hash map). 
 
-It's responsible for:
-* Verification of arriving blocks;
-* Verification of arriving transactions;
-* Synchronization of the transaction list;
-* Synchronization of the block list;
+Es la responsable de:
+* Verificar los bloques que llegan;
+* Verificación de las transacciones que llegan;
+* Sincronización de la lista de transacciones;
+* Sincronización de la lista de bloques;
 
-The blockchain is a linked list where the hash of the next block is calculated based on the hash of the previous block plus the data inside the block itself:
+La cadena de bloques es una lista enlazada en donde el hash del siguiente bloque está calculado en función del hash del bloque previo añadiéndole los datos de ese bloque último.
+
 ```
 +-----------+                +-----------+                +-----------+
-|           |  previousHash  |           |  previousHash  |           |
-|  Block 0  <----------------+  Block 1  <----------------+  Block N  |
+|           |  Hashprevio    |           |  Hashprevio    |           |
+|  Bloque 0 <----------------+  Bloque 1 <----------------+  Bloque N |
 |           |                |           |                |           |
 +-----------+                +-----------+                +-----------+
 ```
+Un bloque se añade a la cadena de bloques sí y solo sí: 
+1. Si el bloque es el último (índice previo + 1);
+2. Si el bloque previo es correcto (si el has previo == block.previousHash);
+3. El hash es correcto (el hash calculado del bloque == block.hash); 
+4. El nivel de dificultad del reto prueba de trabajo es correcto (la dificultad en el índice de la cadena N < la dificultad del bloque que se quiere añadir)
+5. Todas las transacciones en ese bloque son válidas;
+6. La suma de la salida de las transacciones es igual a la suma de las transacciones de entrada + 50 monedas representando la recompensa por haber minado el bloque;
+7. Si existe solo 1 comisión de la transacción y 1 recompensa de transacción. 
 
-A block is added to the block list:
-1. If the block is the last one (previous index + 1);
-2. If previous block is correct (previous hash == block.previousHash);
-3. The hash is correct (calculated block hash == block.hash);
-4. The difficulty level of the proof-of-work challenge is correct (difficulty at blockchain index _n_ < block difficulty);
-5. All transactions inside the block are valid;
-6. The sum of output transactions are equal the sum of input transactions + 50 coins representing the reward for the block miner;
-7. If there is only 1 fee transaction and 1 reward transaction.
+Una transacción de un bloque es válida si y solo si: 
+1. Si el hash de la transacción es correcto (hash calculado de la transacción == transaction.hash);
+2. La firma de todas las transacciones de entrada son correctas (los datos de la transacción están firmados por la clave pública de la dirección); 
+3. Lasuma de las transacciones de entrada es mayor que la suma de las transacciones de salida, incluyendo que tiene que dejar algo de hueco o espacio para cubrir con las comisiones (fees);
+4. Si la transacción no existe ya en la blockchain
+5. Si todas las transacciones de entrada están sin gastar en la cadena de bloques.
 
-A transaction inside a block is valid:
-1. If the transaction hash is correct (calculated transaction hash == transaction.hash);
-2. The signature of all input transactions are correct (transaction data is signed by the public key of the address);
-3. The sum of input transactions are greater than output transactions, it needs to leave some room for the transaction fee;
-4. If the transaction isn't already in the blockchain
-5. If all input transactions are unspent in the blockchain.
+Puedes leer este [post](https://medium.com/@lhartikk/a-blockchain-in-200-lines-of-code-963cc1cc0e54#.dttbm9afr5) from [naivechain](https://github.com/lhartikk/naivechain) para conocer más detalles de cómo funciona una cadena de bloques.
 
-You can read this [post](https://medium.com/@lhartikk/a-blockchain-in-200-lines-of-code-963cc1cc0e54#.dttbm9afr5) from [naivechain](https://github.com/lhartikk/naivechain) for more details about how the blockchain works.
+Existe una lista de transacciones pendientes. No existe nada especial al respecto. En esta implementación, la lista de transacciones contiene únicamente las transacciones pendientes. En cuanto una transacción está confirmada, la cadena de bloques eliminará la transacción de la lista. 
 
-Transactions is a list of pending transactions. Nothing special about it. In this implementation, the list of transactions contains only the pending transactions. As soon as a transaction is confirmed, the blockchain removes it from this list.
 
 ```
 [
